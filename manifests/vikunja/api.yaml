@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: vikunja
+    app.kubernetes.io/name: vikunja
+  name: vikunja-api
+spec:
+  replicas: 2
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: api
+      app.kubernetes.io/instance: vikunja
+      app.kubernetes.io/name: vikunja
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: api
+        app.kubernetes.io/instance: vikunja
+        app.kubernetes.io/name: vikunja
+    spec:
+      containers:
+        - image: 'vikunja/api:latest'
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+            resquests:
+              memory: "64Mi"
+              cpu: "250m"
+          name: api
+          ports:
+            - containerPort: 3456
+              name: http
+              protocol: TCP
+          securityContext:
+            capabilities:
+              add:
+                - CAP_CHOWN
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /etc/vikunja/config.yaml
+              name: api-config
+              subPath: api-config.yaml
+      serviceAccountName: vikunja
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: api
+              app.kubernetes.io/instance: vikunja
+              app.kubernetes.io/name: vikunja
+              # todo: add to frontend and api to same node
+      volumes:
+        - emptyDir: {}
+          name: tmp
+        - name: api-config
+          secret:
+            secretName: vikunja
