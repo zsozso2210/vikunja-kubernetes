@@ -99,10 +99,49 @@ resource "helm_release" "argocd" {
     name  = "configs.secret.argocdServerAdminPassword"
     value = var.argocd_admin_password == "" ? "" : bcrypt(var.argocd_admin_password)
   }
+  set {
+    name  = "configs.params.server\\.insecure"
+    value = "true"
+  }
 
+  set {
+    name  = "configs.params.server\\.basehref"
+    value = "/argocd/"
+  }
+
+  set {
+    name  = "server.ingress.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "server.ingress.paths[0]"
+    value = "/argocd(/|$)(.*)"
+  }
+
+  set {
+    name  = "server.ingress.hosts[0]"
+    value = "localhost"
+  }
+  set {
+    name  = "server.ingress.pathType"
+    value = "Prefix"
+  }
+  set {
+    name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/rewrite-target"
+    value = "/$2"
+  }
+  set {
+    name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/ssl-redirect"
+    value = "false"
+  }
+  set {
+    name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/backend-protocol"
+    value = "HTTP"
+  }
   #   set {
-  #     name  = "configs.params.server\\.insecure"
-  #     value = var.insecure == false ? false : true
+  #     name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/force-ssl-redirect"
+  #     value = "nginx"
   #   }
 
 }
