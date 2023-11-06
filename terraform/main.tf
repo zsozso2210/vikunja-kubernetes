@@ -33,16 +33,8 @@ resource "kind_cluster" "vikunja" {
       image = "kindest/node:v1.28.0"
       # Zone1 node
       labels = {
-        "zone1_node" = "true"
+        "worker-node" = "true"
       }
-      kubeadm_config_patches = [
-        <<-INTF
-kind: JoinConfiguration
-nodeRegistration:
-  taints:
-   [ { key: "zone1_node", value: "true", effect: "NoSchedule" }]
-        INTF
-      ]
     }
 
     node {
@@ -50,21 +42,17 @@ nodeRegistration:
       image = "kindest/node:v1.28.0"
       # Zone2 node
       labels = {
-        "zone2_node" = "true"
+        "worker-node" = "true"
       }
-      kubeadm_config_patches = [
-        <<-INTF
-kind: JoinConfiguration
-nodeRegistration:
-  taints:
-   [ { key: "zone2_node", value: "true", effect: "NoSchedule" }]
-        INTF
-      ]
     }
     node {
       role  = "worker"
       image = "kindest/node:v1.28.0"
+      labels = {
+        "worker-node" = "true"
+      }
     }
+
   }
 }
 
@@ -144,4 +132,27 @@ resource "helm_release" "argocd" {
   #     value = "nginx"
   #   }
 
+}
+
+resource "kubernetes_namespace" "main" {
+  metadata {
+    name = "vikunja-demo"
+    labels = {
+      "created-by" = "Terraform"
+    }
+  }
+
+}
+
+resource "kubernetes_secret_v1" "gcp_sercret_manager" {
+  metadata {
+    name = "gcpsm-secret"
+    labels = {
+      "type" = "gcpsm"
+    }
+    namespace = kubernetes_namespace.main.metadata[0].name
+  }
+  data = {
+    "secret-access-credentials" = "${file("${path.module}/vipscanner-1248-919f960a1055.json")}"
+  }
 }

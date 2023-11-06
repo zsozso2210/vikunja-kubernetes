@@ -6,10 +6,7 @@ metadata:
     app.kubernetes.io/instance: vikunja
     app.kubernetes.io/name: vikunja
 spec:
-  replicas: 2
-  podDisruptionBudget:
-    enabled: true
-    minAvailable: 1
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/component: frontend
@@ -25,20 +22,21 @@ spec:
       containers:
       - env:
           - name: VIKUNJA_API_URL
-            value: http://vikunja-backend:3456
+            value: http://vikunja-api:80/api/v1
           - name: VIKUNJA_HTTP_PORT
             value: '8080'
-      - name: vikunja-frontend
+          - name: VIKUNJA_HTTP2_PORT
+            value: '8081'
+        name: vikunja-frontend
         image: vikunja/frontend:latest
         imagePullPolicy: IfNotPresent
-        
         resources:
-          limits:
-            cpu: "1"
-            memory: "512Mi"
-          resquests:
-            cpu: "0.5"
-            memory: "256Mi"
+            limits:
+              cpu: '1'
+              memory: 512Mi
+            requests:
+              cpu: '0.5'
+              memory: 256Mi
         ports:
           - containerPort: 8080
             name: http
@@ -62,23 +60,21 @@ spec:
           tcpSocket:
             port: 8080
         securityContext:
-          runAsUser: 1000
-          runAsGroup: 1000
-          fsGroup: 1000
-          # the container is started with a non-root user ID (UID) instead of the default root user ID
-          runAsNonRoot: true 
+          runAsUser: 101
+          # runAsGroup: 1000
+          # # the container is started with a non-root user ID (UID) instead of the default root user ID
+          # runAsNonRoot: true 
           allowPrivilegeEscalation: false
           # prevent write access to a container's root filesystem
-          readOnlyRootFilesystem: true
-
+#          readOnlyRootFilesystem: true
           capabilities:
             add:
               - NET_BIND_SERVICE
             drop:
               - ALL
-          volumeMounts:
-            - mountPath: /tmp
-              name: tmp
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
       serviceAccountName: vikunja
       volumes:
         - emptyDir: {}

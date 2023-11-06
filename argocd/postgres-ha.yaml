@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql-ha
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 12.0.5
+    chart: postgresql-ha
+    #existingSecret: postgresql-credentials
+    helm:
+      values: |
+        metrics:
+          enabled: true
+        networkPolicy:
+          enabled: true
+        witness.pdb.create: true
+        pgpool.pdb.create: true
+        postgresql:
+          initdbScripts:
+            init.sql: |
+              CREATE DATABASE vikunja;
+              GRANT ALL PRIVILEGES ON DATABASE vikunja TO postgres;
+          existingSecret: postgresql-credentials
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 250m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+          podAffinityPreset: soft
+          podAntiAffinityPreset: hard
+          nodeAffinityPreset: 
+            type: hard
+            key: worker-node
+            values:
+              - true
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: postgresql
+                  app.kubernetes.io/instance: postgresql-ha
+                  app.kubernetes.io/name: postgresql-ha
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: vikunja-demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false
+    syncOptions:
+#      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      
