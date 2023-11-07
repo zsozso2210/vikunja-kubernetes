@@ -8,3 +8,19 @@ labels:
 - includeSelectors: true
   pairs:
     environment: prod
+
+patches:
+  - target:
+      kind: Deployment
+      name: vikunja-api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+  - target:
+      kind: Deployment
+      name: vikunja-frontend
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2

@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: vikunja
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/component: frontend
@@ -75,7 +77,45 @@ spec:
         volumeMounts:
           - mountPath: /tmp
             name: tmp
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: frontend
+              app.kubernetes.io/instance: vikunja
+              app.kubernetes.io/name: vikunja
       serviceAccountName: vikunja
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: worker-node
+                operator: In
+                values:
+                - 'true'
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app.kubernetes.io/component 
+                    operator: In
+                    values:
+                    - api
+                topologyKey: "kubernetes.io/hostname"
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/component 
+                operator: In
+                values:
+                - frontend
+            topologyKey: "kubernetes.io/hostname"
       volumes:
         - emptyDir: {}
           name: tmp
