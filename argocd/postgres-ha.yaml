@@ -12,7 +12,7 @@ spec:
     chart: postgresql-ha
     #existingSecret: postgresql-credentials
     helm:
-      values: |
+      valuesObject:
         metrics:
           enabled: true
         networkPolicy:
@@ -20,6 +20,7 @@ spec:
         witness.pdb.create: true
         pgpool.pdb.create: true
         postgresql:
+          priorityClassName: high-priority
           initdbScripts:
             init.sql: |
               CREATE DATABASE vikunja;

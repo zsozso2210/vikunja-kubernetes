@@ -21,6 +21,8 @@ spec:
         app.kubernetes.io/instance: vikunja
         app.kubernetes.io/name: vikunja
     spec:
+      # Priority Classes are used to order the scheduling queue in Kubernetes
+      priorityClassName: high-priority
       containers:
         - env:
           - name: VIKUNJA_DATABASE_USER
@@ -41,33 +43,37 @@ spec:
             value: http://vikunja-frontend:8080
           image: 'vikunja/api:latest'
           imagePullPolicy: IfNotPresent
+          # QoS class of the Pod is Quaranteed because it has a memory request and a memory limit
           resources:
             limits:
               cpu: '1'
               memory: 512Mi
             requests:
-              cpu: '0.5'
-              memory: 256Mi
+              cpu: '1'
+              memory: 512Mi
           name: api
           ports:
             - containerPort: 3456
               name: http
               protocol: TCP
-          # startupProbe:
-          #   type: http
-          #   httpGet:
-          #     path: /health
-          #     port: 3456
-          # readinessProbe:
-          #   type: http
-          #   httpGet:
-          #     path: /health
-          #     port: 3456
-          # livenessProbe:
-          #   type: http
-          #   httpGet:
-          #     path: /health
-          #     port: 3456
+          startupProbe:
+            periodSeconds: 5
+            failureThreshold: 10
+            httpGet:
+              path: /health
+              port: 3456
+          readinessProbe:
+            periodSeconds: 5
+            failureThreshold: 10
+            httpGet:
+              path: /health
+              port: 3456
+          livenessProbe:
+            periodSeconds: 5
+            failureThreshold: 10
+            httpGet:
+              path: /health
+              port: 3456
           securityContext:
             capabilities:
               add:
@@ -84,13 +90,7 @@ spec:
       serviceAccountName: vikunja
       affinity:
         nodeAffinity:
-          # requiredDuringSchedulingIgnoredDuringExecution:
-          #   nodeSelectorTerms:
-          #   - matchExpressions:
-          #     - key: kubernetes.io/hostname
-          #       operator: In
-          #       values:
-          #       - 'vikunja-local-worker3'
+
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:

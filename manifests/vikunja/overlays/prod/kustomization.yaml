@@ -1,15 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-
 resources:
 - ../../base
+
 labels:
 - includeSelectors: true
   pairs:
     environment: prod
 
 patches:
+  # Change the number of replicas from 1 to 2 on the vikunja-api and vikunja-frontend deployments
   - target:
       kind: Deployment
       name: vikunja-api
@@ -23,4 +24,19 @@ patches:
     patch: |-
       - op: replace
         path: /spec/replicas
+        value: 2
+  # Change the number of minReplicas from 1 to 2 on the vikunja-api and vikunja-frontend hpa
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: vikunja-api-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: vikunja-frontend-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
         value: 2

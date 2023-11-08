@@ -21,6 +21,8 @@ spec:
         app.kubernetes.io/instance: vikunja
         app.kubernetes.io/name: vikunja
     spec:
+      # Priority Classes are used to order the scheduling queue in Kubernetes
+      priorityClassName: high-priority
       containers:
       - env:
           - name: VIKUNJA_API_URL
@@ -32,13 +34,14 @@ spec:
         name: vikunja-frontend
         image: vikunja/frontend:latest
         imagePullPolicy: IfNotPresent
+        # QoS class of the Pod is Quaranteed because it has a memory request and a memory limit
         resources:
             limits:
               cpu: '1'
               memory: 512Mi
             requests:
-              cpu: '0.5'
-              memory: 256Mi
+              cpu: '1'
+              memory: 512Mi
         ports:
           - containerPort: 8080
             name: http
