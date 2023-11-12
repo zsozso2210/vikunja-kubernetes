@@ -2,5 +2,5 @@ terraform/.terraform
 terraform/.terraform.lock.hcl
 *.tfstate*
 terraform/vikunja-local-config
-terraform/v*.json
+terraform/*.json
 ignore

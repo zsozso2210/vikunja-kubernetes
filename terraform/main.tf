@@ -144,6 +144,6 @@ resource "kubernetes_secret_v1" "gcp_sercret_manager" {
     namespace = kubernetes_namespace.main.metadata[0].name
   }
   data = {
-    "secret-access-credentials" = "${file("${path.module}/vipscanner-1248-919f960a1055.json")}"
+    "secret-access-credentials" = "${file("${path.module}/gcpsm-secret.json")}"
   }
 }
