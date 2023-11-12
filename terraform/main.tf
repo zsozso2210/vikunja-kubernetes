@@ -4,7 +4,7 @@ locals {
 }
 
 # Create a test cluster named "vikunja-local" with a control-plane and
-# two workers using the inline config argument
+# three workers using the inline config argument
 resource "kind_cluster" "vikunja" {
   name           = local.cluster_name
   wait_for_ready = true
@@ -31,7 +31,6 @@ resource "kind_cluster" "vikunja" {
     node {
       role  = "worker"
       image = "kindest/node:v1.28.0"
-      # Zone1 node
       labels = {
         "worker-node" = "true"
       }
@@ -40,7 +39,6 @@ resource "kind_cluster" "vikunja" {
     node {
       role  = "worker"
       image = "kindest/node:v1.28.0"
-      # Zone2 node
       labels = {
         "worker-node" = "true"
       }
@@ -52,7 +50,6 @@ resource "kind_cluster" "vikunja" {
         "worker-node" = "true"
       }
     }
-
   }
 }
 
@@ -70,7 +67,6 @@ provider "helm" {
     client_certificate     = kind_cluster.vikunja.client_certificate
     client_key             = kind_cluster.vikunja.client_key
   }
-  #alias = "kind"
 }
 
 resource "helm_release" "argocd" {
@@ -127,11 +123,6 @@ resource "helm_release" "argocd" {
     name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/backend-protocol"
     value = "HTTP"
   }
-  #   set {
-  #     name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/force-ssl-redirect"
-  #     value = "nginx"
-  #   }
-
 }
 
 resource "kubernetes_namespace" "main" {
