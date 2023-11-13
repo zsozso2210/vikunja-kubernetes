@@ -7,6 +7,6 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: vikunja-frontend
-  minReplicas: 1
+  minReplicas: 1 # Minimum number of replicas is adjusted in the overlays 
   maxReplicas: 10
   targetCPUUtilizationPercentage: 50

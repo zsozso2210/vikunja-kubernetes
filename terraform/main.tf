@@ -53,22 +53,8 @@ resource "kind_cluster" "vikunja" {
   }
 }
 
-provider "kubernetes" {
-  host                   = kind_cluster.vikunja.endpoint
-  cluster_ca_certificate = kind_cluster.vikunja.cluster_ca_certificate
-  client_certificate     = kind_cluster.vikunja.client_certificate
-  client_key             = kind_cluster.vikunja.client_key
-}
 
-provider "helm" {
-  kubernetes {
-    host                   = kind_cluster.vikunja.endpoint
-    cluster_ca_certificate = kind_cluster.vikunja.cluster_ca_certificate
-    client_certificate     = kind_cluster.vikunja.client_certificate
-    client_key             = kind_cluster.vikunja.client_key
-  }
-}
-
+# Install ArgoCD Helm Chart
 resource "helm_release" "argocd" {
   depends_on = [kind_cluster.vikunja]
 
@@ -88,33 +74,33 @@ resource "helm_release" "argocd" {
     value = "true"
   }
 
-  set {
-    name  = "configs.params.server\\.basehref"
-    value = "/argocd/"
-  }
+  # set {
+  #   name  = "configs.params.server\\.basehref"
+  #   value = "/argocd/"
+  # }
 
   set {
     name  = "server.ingress.enabled"
     value = "true"
   }
 
-  set {
-    name  = "server.ingress.paths[0]"
-    value = "/argocd(/|$)(.*)"
-  }
+  # set {
+  #   name  = "server.ingress.paths[0]"
+  #   value = "/argocd(/|$)(.*)"
+  # }
 
   set {
     name  = "server.ingress.hosts[0]"
-    value = "localhost"
+    value = "argo.127-0-0-1.sslip.io"
   }
-  set {
-    name  = "server.ingress.pathType"
-    value = "Prefix"
-  }
-  set {
-    name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/rewrite-target"
-    value = "/$2"
-  }
+  # set {
+  #   name  = "server.ingress.pathType"
+  #   value = "Prefix"
+  # }
+  # set {
+  #   name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/rewrite-target"
+  #   value = "/$2"
+  # }
   set {
     name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/ssl-redirect"
     value = "false"
@@ -125,6 +111,7 @@ resource "helm_release" "argocd" {
   }
 }
 
+# Create Kubernetes Namespace
 resource "kubernetes_namespace" "main" {
   metadata {
     name = "vikunja-demo"
@@ -132,16 +119,38 @@ resource "kubernetes_namespace" "main" {
       "created-by" = "Terraform"
     }
   }
-
 }
 
-resource "kubernetes_secret_v1" "gcp_sercret_manager" {
+resource "kubernetes_namespace" "keycloak" {
+  metadata {
+    name = "keycloak"
+    labels = {
+      "created-by" = "Terraform"
+    }
+  }
+}
+
+# Create Kubernetes Secret for "External Secret Manager"
+resource "kubernetes_secret_v1" "gcp_secret_manager" {
   metadata {
     name = "gcpsm-secret"
     labels = {
       "type" = "gcpsm"
     }
     namespace = kubernetes_namespace.main.metadata[0].name
+  }
+  data = {
+    "secret-access-credentials" = "${file("${path.module}/gcpsm-secret.json")}"
+  }
+}
+
+resource "kubernetes_secret_v1" "gcp_secret_manager_keycloak" {
+  metadata {
+    name = "gcpsm-secret"
+    labels = {
+      "type" = "gcpsm"
+    }
+    namespace = kubernetes_namespace.keycloak.metadata[0].name
   }
   data = {
     "secret-access-credentials" = "${file("${path.module}/gcpsm-secret.json")}"

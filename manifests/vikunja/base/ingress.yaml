@@ -19,10 +19,9 @@ metadata:
     nginx.ingress.kubernetes.io/gzip_min_length: "256"
     nginx.ingress.kubernetes.io/add-base-url: "true"
     
-#    cert-manager.io/issuer: letsencrypt-prod
 spec:
   rules:
-  - host: localhost
+  - host: vikunja.127-0-0-1.sslip.io
     http:
       paths:
       - path: /api/v1
