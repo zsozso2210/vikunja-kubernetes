@@ -15,9 +15,16 @@ spec:
       values: |
         production: false
         postgresql:
+          enabled: false
           auth:
-            enabled: true
+            enabled: false
             existingSecret: keycloak-postgresql-external-secrets
+        externalDatabase:
+          host: postgresql-ha-pgpool.vikunja-demo.svc.cluster.local
+          port: 5432
+          user: postgres
+          existingSecret: external-postgresql-data
+          existingSecretPasswordKey: password
         auth:
           existingSecret: keycloak-external-secrets
           passwordSecretKey: admin-password

@@ -25,7 +25,7 @@ spec:
       priorityClassName: high-priority
       # Vikunja API is not able to resolve the keycloak hostname within the cluster
       hostAliases:
-      - ip: "10.96.89.8" # Static IP of the keycloak service
+      - ip: "10.96.44.39" # Static IP of the 'keycloak' service in 'keycloak' namespace
         hostnames:
         - "keycloak.127-0-0-1.sslip.io"
       containers:

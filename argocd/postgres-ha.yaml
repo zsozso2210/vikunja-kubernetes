@@ -24,6 +24,8 @@ spec:
             init.sql: |
               CREATE DATABASE vikunja;
               GRANT ALL PRIVILEGES ON DATABASE vikunja TO postgres;
+              CREATE DATABASE bitnami_keycloak;
+              GRANT ALL PRIVILEGES ON DATABASE bitnami_keycloak TO postgres;
           existingSecret: postgresql-credentials # Secret is created by External Secrets automatically
           # Defining the following values for CPU and memory requests and limits is recommended for production
           # We use the same values for limits and requests for the "Quarinteed" QoS class to ensure that the pods are not evicted
