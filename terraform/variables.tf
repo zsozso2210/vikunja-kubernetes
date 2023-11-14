@@ -18,5 +18,4 @@ variable "argocd_chart_version" {
 variable "argocd_admin_password" {
   description = "Default Admin Password"
   type        = string
-  default     = ""
 }

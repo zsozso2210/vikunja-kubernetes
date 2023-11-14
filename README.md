@@ -18,7 +18,7 @@ With Helm, users can easily define, deploy, and manage applications, version con
 
 ***
 ## High Availability Configurations:
-The applications are configured for high availability using various Kubernetes features:
+The PostgreSQL and Vikunja applications are configured for high availability using various Kubernetes features:
 
 - **Multiple Replicas:**
 Ensures redundancy and resilience in case of node failures or increased load.
@@ -69,7 +69,6 @@ The Helm chart configured to use existing secrets options for PostgreSQL credent
 
 ## Monitoring
 I am using Prometheus with Grafana for monitoring.
-
 
 ## What is not covered
 
