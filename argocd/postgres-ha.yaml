@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql-ha
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 12.0.5
+    chart: postgresql-ha
+    helm:
+      valuesObject:
+        metrics:
+          enabled: true
+        networkPolicy:
+          enabled: true
+        witness.pdb.create: true
+        pgpool.pdb.create: true
+        postgresql:
+          priorityClassName: high-priority
+          initdbScripts:
+            init.sql: |
+              CREATE DATABASE vikunja;
+              GRANT ALL PRIVILEGES ON DATABASE vikunja TO postgres;
+              CREATE DATABASE bitnami_keycloak;
+              GRANT ALL PRIVILEGES ON DATABASE bitnami_keycloak TO postgres;
+          existingSecret: postgresql-credentials # Secret is created by External Secrets automatically
+          # Defining the following values for CPU and memory requests and limits is recommended for production
+          # We use the same values for limits and requests for the "Quarinteed" QoS class to ensure that the pods are not evicted
+          # More info: https://kubernetes.io/docs/tasks/configure-pod-container/quality-service-pod/
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 500m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+          podAffinityPreset: soft
+          # The AntifAffinity is set to hard to ensure that the pods are not scheduled on the same node
+          podAntiAffinityPreset: hard
+          # The nodeAffinity is set to hard to ensure that the pods are scheduled the worker nodes. 
+          nodeAffinityPreset: 
+            type: hard
+            key: worker-node
+            values:
+              - true
+          # The topologySpreadConstraints are set to ensure that the pods spread accross the worker nodes
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: postgresql
+                  app.kubernetes.io/instance: postgresql-ha
+                  app.kubernetes.io/name: postgresql-ha
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: vikunja-demo
+  # ArgoCD syncpolicy options
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false 
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      

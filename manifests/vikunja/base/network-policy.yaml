@@ -1,0 +1,40 @@
+# Todo: Not done  yet
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: backend-access
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: api
+      app.kubernetes.io/instance: vikunja
+      app.kubernetes.io/name: vikunja
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/component: frontend
+            app.kubernetes.io/instance: vikunja
+            app.kubernetes.io/name: vikunja
+      ports:
+        - protocol: TCP
+          port: 3456
+
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-external
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+      app.kubernetes.io/instance: vikunja
+      app.kubernetes.io/name: vikunja
+  ingress:
+  - from: []
+    ports:
+    - port: 8080
+      protocol: TCP

@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak
+spec:
+  destination:
+    name: ''
+    namespace: keycloak
+    server: 'https://kubernetes.default.svc'
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 17.3.1
+    chart: keycloak
+    helm:
+      values: |
+        production: false
+        postgresql:
+          enabled: false
+          auth:
+            enabled: false
+            existingSecret: keycloak-postgresql-external-secrets
+        externalDatabase:
+          host: postgresql-ha-pgpool.vikunja-demo.svc.cluster.local
+          port: 5432
+          user: postgres
+          existingSecret: external-postgresql-data
+          existingSecretPasswordKey: password
+        auth:
+          existingSecret: keycloak-external-secrets
+          passwordSecretKey: admin-password
+        image:
+          debug: true
+        readinessProbe:
+          enabled: false
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          hostname: keycloak.127-0-0-1.sslip.io
+        replicaCount: 1
+        resources:
+            requests:
+              memory: 512Mi
+              cpu: 500m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+        nodeAffinityPreset: 
+            type: hard
+            key: worker-node
+            values:
+              - true
+        podAntiAffinityPreset: soft
+        podAffinityPreset: hard
+  project: default
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=false

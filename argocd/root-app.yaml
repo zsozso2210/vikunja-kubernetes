@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-app
+spec:
+  destination:
+    name: ''
+    namespace: argocd
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: argocd
+    repoURL: 'https://github.com/zsozso2210/vikunja-kubernetes.git'
+    targetRevision: HEAD
+    directory:
+      recurse: false
+      include: '*yaml'
+  sources: []
+  project: default
+  syncPolicy:
+    syncOptions:
+      - PruneLast=true
