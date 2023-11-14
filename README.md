@@ -72,7 +72,6 @@ I am using Prometheus with Grafana for monitoring.
 
 ## What is not covered
 
-- ArgoCD app-of-app pattern to provide simple access to multiple ArgoCD apps stored in Git
 - Grafana dashboard for Vikunja metrics. Metrics are enabled in Vikunja app
 - Details of Keycloak configuration. For example create a Client and realm configuration
 - Detailed instruction how you can configure Google Secret Manager
@@ -81,9 +80,28 @@ I am using Prometheus with Grafana for monitoring.
 Vikunja API needs a HTTP(s) access to Keycloak instance. Because I am using \*.127-0-0-1.sslip.io domain names in configurations, therefore the IP address resolved to **127.0.0.1**
 Withing Kubernetes, **Vikunja API** could not reach **Keycloak** on this local IP address so I am using *hostAliases* in deployment to point to right IP, however it can be different in every cluster. 
 
+***
+
 ## Installation of Kind cluster and ArgoCD instance via Terraform
 ```sh
 cd terraform
 terraform plan
 terraform apply
+```
+
+## Login to ArgoCD via cli:
+```
+argocd login http://argo.127-0-0-1.sslip.io/
+```
+
+## Create root-app in AroCD which install additional Argocd Apps from Git repo: 
+```
+argocd app create root-app \
+  --dest-server https://kubernetes.default.svc \
+  --dest-namespace argocd \
+  --repo https://github.com/zsozso2210/vikunja-kubernetes.git \
+  --path argocd \
+  --revision kind-argocd \
+  --sync-policy "syncOptions={PruneLast=true}" \
+  --project default
 ```
