@@ -11,7 +11,7 @@ spec:
     # This is the path to the kustomization.yaml file for PROD environment  
     path: manifests/vikunja/overlays/prod
     repoURL: 'https://github.com/zsozso2210/vikunja-kubernetes.git'
-    targetRevision: kind-argocd
+    targetRevision: HEAD
   sources: []
   project: default
   syncPolicy:
