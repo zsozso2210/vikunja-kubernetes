@@ -105,3 +105,7 @@ argocd app create root-app \
   --sync-policy "syncOptions={PruneLast=true}" \
   --project default
 ```
+
+![Alt text](root-app.gif?raw=true "Root app")
+
+![Alt text](tiles.gif?raw=true "Application tiles")
